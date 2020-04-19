@@ -1,0 +1,90 @@
+Secure code review checklist:
+
+The same way we all review an important document one more time before sending it out, 
+applications require a “last look” to ensure that the application and its’ components, are free of security flaws. 
+A secure code review serves to detect all the inconsistencies that weren’t found in other types of security testing – 
+and to ensure the application’s logic and business code is sound. Reviews can be done via both manual and automated methods.
+
+Verifying the security of your code via a secure code review also serves to cut down on time and resources it would take 
+if vulnerabilities were detected after release. The security bugs being looked for during a secure code review 
+have been the cause of countless breaches which have resulted in billions of dollars in lost revenue, fines, and abandoned customers.
+
+Security code reviews focus on finding flaws in each of the following areas: 
+Authentication,
+authorization, 
+security configuration, 
+session management, 
+logging, 
+data validation, 
+error handling, and 
+encryption. 
+
+Code reviewers:
+---------------
+Code reviewers should be well-versed in the language of the application they’re testing, 
+as well as knowledgeable on the secure coding practices and security controls that they need to be looking out for.
+Another important need for the reviewer is for he or she to understand the full context of the application, 
+including its intended audience and use cases, in order to be able to successfully review the code. 
+Without that context, code reviewers won’t be able to secure parts of the code that may look secure at first glance, 
+but given the chance can easily be attacked. Knowing the context by which an app is going to be used and 
+how it will function is the only way to certify that the code adequately protects whatever you’ve relegating to it.
+
+
+Manual vs Automated Secure Code Reviews
+Which is better? As with other areas of your SDLC, the best approach is a mixed approach, 
+combining both manual review as well as inspection using strong static code analysis tools. 
+Here are the pros and cons of the two methods of review:
+
+
+Automated Code Review Pros: 
+Detects low-hanging fruits and hundreds of other vulnerabilities, including SQL injection and Cross-Site Scripting.
+Ability to test quickly and in large chunks of code is crucial in agile and continuous integration environments.
+Ability to be scheduled and run on-demand.
+Ability to add non-security checks including business logic.
+Ability to scale automated testing as per organizational need.
+Depending on tool choice, an automated source code review tool can be customized per organizational needs, 
+especially certain compliance standards and for high-value applications
+
+Automated Code Review Cons:
+Tools that don’t allow fine-tuning and customization can produce false positives and negatives.
+Coverage and breadth are really dependent on the type of tool you choose and the languages, frameworks and standards it covers.
+Comes with a learning curve for those not familiar with static code checkers.
+Not viable for all budgets, though there are strong open source tools for common languages.
+
+Manual Code Review Pros:
+Ability to deep dive into the code paths to check for logical errors and flaws in the design and architecture
+most automated tools couldn’t find.
+Security issues like authorization, authentication and data validation can be better detected manually compared to some automated tools.
+There’s always room for an extra set of (expertly trained) eyes on high-value applications.
+Reviewing other people’s code can be a great way to share secure coding and AppSec knowledge.
+
+Manual Code Review Cons:
+Requires an expert of both the language and frameworks used in the app as well as needing a deep understanding of security.
+Different reviewers will produce different reports, resulting in inconsistent findings between reviewers 
+– though peer reviews can be a fix.
+Testing and writing up reports is timely, and often requires developers to participate in sometimes lengthy interview sessions to offer context to the reviewer, costing developer time and resources
+Manual review of applications with more than 10-15k LoC is limited to targeting high risk functions only.
+
+5 Tips to a Better Secure Code Review:
+---------------------------------------
+1. Produce code review checklists to ensure consistency between reviews and by different developers
+2. Ensure a positive security culture by not singling out developers.
+3. Review code each time a meaningful change in the code has been introduced.
+4. A mix of human review and tool use is best to detect all flaws.
+5. Continuously monitor and track patterns of insecure code.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

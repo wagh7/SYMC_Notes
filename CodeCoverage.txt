@@ -1,0 +1,9 @@
+To run google test:
+C:\Perfoce_Workspace\AK_CC_Translator\agent\GoogleTests\GoogleTestMain\Release
+> GoogleTestMain.exe
+
+
+
+
+Help : http://www.bogotobogo.com/cplusplus/google_unit_test_gtest.php
+

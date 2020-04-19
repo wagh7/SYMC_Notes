@@ -1,0 +1,60 @@
+D ocker
+
+Docker is a tool designed to make it easier to create, deploy, and run applications by using containers.
+Its mainly for Devops : Developer and operation team.
+
+Main design principle:
+Docker use as a ingredient into existing platform.
+
+We can compare Docker with VM:
+	VM are heavier than containers
+	for each VM have independent Guest OS on the Host OS. Docker use host kernel and not have seperate OS image.
+	Docker Performance is far better than VM.
+	Using container size of application reduce.
+
+Docker process: 
+		Docker daemon : User can not access it directly
+		client : user can use docker client to command docker/containers
+
+Docker contains:
+	1. Docker Containers
+	2. Docker Images
+	3. Docker Hub / Registry
+
+What happens when container is launched:
+e.g. docker run -i -t ubuntu /bin/bash
+1. Pulls the ubuntu image. (image layer is a read only layer)
+2. create new container
+3. Allocates a filesystem and mounts a read-write layer.
+4. Allocates a network/bridge interface.
+5. Set up IP address.
+6. Execute the process/application you specify.
+7. Capture and provide application output.
+
+Basic commands:
+* docker version
+ docker –d or service docker start
+ docker
+ docker images : shows images downloaded/created
+ docker ps –a : Shows all containers (running + stopped)
+ docker search <string> : Search image into repo
+ docker search Ubuntu
+ docker pull <> : Pull Image from Repo
+ docker images
+ docker run <image name> : Creates container from image if not already exists
+ docker run <> apt-get install -y ping : -y is for non-interactive all yes install
+ docker run -t -i ubuntu:14.04 /bin/bash
+ docker ps –l – all running containers. –a for all containers.
+ docker commit <ID from ps -l> <New name to image>
+ docker inspect <ID from ps -L> : all useful info for image
+ docker push <Image name>
+https://registry.hub.docker.com/
+
+Namespaces:
+Limits what you can see and therfore use.
+
+Cgroups: 
+How much you can use CPU and memory
+
+chroot:
+

@@ -1,0 +1,302 @@
+
+CLOUD Architecture
+==================
+
+Cloud Service Modules
+
+Cloud Deployment Models
+
+Two Components:
+Cloud Stack
+Actors
+
+Cloud Stack
+
+	Physical Layer
+		Required hardware
+		Provide physical hardware and allow communication among them.
+	Virtualization Layer
+		-VMware Esxi - hypervisor
+		-Pool of VMs, CPU , RAM, Server
+		-create first service model - Infra structure as a service model-IAAS	(Infrastructure)
+	Platform Layer
+		-Database,MySQL, Web server, System software, 
+		-Platform as a service	- PAAS
+	Application Layer
+		-application
+		-Software as a service - SAAS
+
+Service Layers: IAAS - PASS - SAAS
+
+
+Actors
+	Cloud Service Provider
+		-Manage the stack
+		-Make services available
+		-Service Management
+		-Provide Security and Privacy
+
+	Cloud Consumer
+		-What are the services available and request a service
+	Cloud Broker   
+		-Negotiates between cloud Provider and consumers
+		-service intermediation
+		-Appirio, AWS marketplace, BlueWolf, Cloud Compare(Ireland's first cloud broker), Cloud More, Cloud Nation
+		-Indian: TCS, Infosys, Wipro
+	Cloud Auditor  
+		-Conduct independent assessment of cloud services
+		-Security/privacy Auditing
+	Cloud Carrier
+		-provide connectivity and transport of cloud services from cloud service provider to consumers.
+
+
+Public Cloud
+Private Cloud
+Hybrid Cloud
+Community cloud
+
+What is Cloud Computing?
+Cloud computing is the on-demand delivery of compute power, database storage, applications, and other IT resources through a cloud services platform via the internet with pay-as-you-go pricing.
+
+Types of Cloud Computing:
+Cloud computing has three main types that are commonly referred to a:
+Infrastructure as a Service (IaaS)
+Platform as a Service (PaaS)
+Software as a Service (SaaS). 
+
+
+AWS
+---
+
+Benefits:
+1. Secure and durable platform which provides end to end privacy and end-to-end security and storage.
+2. Easily scalable
+3. Easy to use
+4. Cost saving - pay-as-you-go
+5. AWS Experience
+
+Amazon Services:
+1. Compute-
+	Amazon EC2 - Elastic Computing Cloud
+2. Storage-
+	S3
+3. Networking-
+	VPC
+4. DB-
+	RDS: Manage Relational Database services
+5. Management Tools-
+	Cloud Watch
+6. Security-
+	Identity and Access management
+	Inspector
+	WAF: Filter malicious web traffic. 
+7. Application Services-
+	API build
+	Mail sending service
+	Cloud search
+8. Developer tools
+9. Application Integration
+10. Mobile service
+
+11. Migration
+
+
+EC2- (Elastic Computing cloud):-----------------------------------------------------------------------------------------------
+Amazon Elastic Compute Cloud (Amazon EC2) is a web service that provides secure, resizable compute capacity in the cloud. 
+It is designed to make web-scale cloud computing easier for developers.
+
+Amazon EC2’s simple web service interface allows you to obtain and configure capacity with minimal friction. It provides you with complete control of your computing resources and lets you run on Amazon’s proven computing environment. Amazon EC2 reduces the time required to obtain and boot new server instances to minutes, allowing you to quickly scale capacity, both up and down, as your computing requirements change. Amazon EC2 changes the economics of computing by allowing you to pay only for capacity that you actually use. Amazon EC2 provides developers the tools to build failure resilient applications and isolate them from common failure scenarios.
+		
+Tenancy: 
+Shared Instance: All customer have instances on same hardware
+Dedicated Instance: Specific user have instance on seperate hardware with all other resources from the same user.
+Dedicated Host: Instances on dedicated Host, in this case all host is allocated for specific user.
+				User needs to charge for Host it self. Then user can create as many as instances that host supports.				
+While creating new EC2 instance, we can mention network i.e. VPC(virtual private cloud) / subnet / Public IP / Security group
+
+S3 simple storage Service:-------------------------------------------------------------------------------------------------------
+Amazon Simple Storage Service is storage for the Internet. It is designed to make web-scale computing easier for developers.
+
+Amazon S3 has a simple web services interface that you can use to store and retrieve any amount of data, at any time, 
+from anywhere on the web. It gives any developer access to the same highly scalable, reliable, fast, inexpensive data storage infrastructure 
+that Amazon uses to run its own global network of web sites. 
+The service aims to maximize benefits of scale and to pass those benefits on to developers.
+
+VPC
+Can expand existing VP6
+
+VPC peering:
+A VPC peering connection is a networking connection between two VPCs that enables you to route traffic between them using private IPv4 addresses or IPv6 addresses. 
+Instances in either VPC can communicate with each other as if they are within the same network. You can create a VPC peering connection between your own VPCs, 
+or with a VPC in another AWS account. The VPCs can be in different regions (also known as an inter-region VPC peering connection).
+
+VPC:
+Virtual Private Cloud
+Subnet
+Route Table
+NAT Gateways
+
+Create VPC of 64 IPs
+Create 4 subnets, 2 private subnet and 2 public subnet.
+each of 16 IPs(use subneting)
+
+(some IPs are for internal use- first 4 and last 1)
+
+For each VPC there is a default Route table already created.
+
+Create seperate Route Table for private and public subnet
+
+One Subnet associted with only one Route table
+One route table associated with multiple subnet.
+
+Internet Gateways:
+allow connection between VPC to outside Internet
+
+So create one Internet Gateways IG and attached it with the VPC.
+
+In public subnet's Route table associate IG as a target.
+
+NAT Gateways:
+It allows resources with private IPs connect with outside network. Its just like a proxy.
+So create one NAT Gateways - NATG
+In private subnet's Route table give reference of NATG in target IP
+
+
+ACL : Network Access Control List - In VPC you can mentioned/set Inbound / Outbound rules.
+
+VPN:
+create VPC
+Create customer Gateways(represent on-prem end)
+Create virtual Private gateways and attcahed it with VPC (represent CLOUD end)
+Create new VPN connection: choose customer gateways : then select virtual private gateways.
+Download configuration file
+
+NAT
+	-Equivalent to forward Proxy.
+	-Traffic originated from private instances going to Internet.
+	-Should be always placed in public subnet.
+ELB (Elastic Load Balancing)
+	-Equivalent of Reverse Proxy
+	-ELB can be public/private, Can be place in public/private subnet.
+	-Distribution of traffic coming from Internet to internal resources
+	-Health check
+
+	While creating the the ELB need to select subnet
+	ELB should always be accessed using DNS and not IP. 
+
+	
+Classic ELB
+	Network layer load balancer
+	Never able to distinguish incoming request in term of content which it is trying to request
+	All instances have same content and when request come it go to any instance
+Application load balancer
+
+
+Private IP:
+	Valid within VPC.
+Public IP:
+	EC2 instance Stop and Start Public IP change
+	But IP address EC2 instance reboot
+Elastic IP:
+	Reserve on IP and then locate it with one of the EC2 instance.
+
+AWS Security features:
+Encryption and key management
+client side encryption
+	you encrypt your data and manage your own keys.
+Server side encryption
+	AWS encrypts data and manages the keys for you.
+
+Key Management:
+	-On your own
+	-AWS Key Management Services
+	-With AWS partner solution
+	-Using AWS CloudHSM
+	
+Where are the keys stored?
+Where are the keys used?
+Who has access to the keys?
+
+Symmetric Data key +  Master Key(use to decrypt) = Encrypted Data Key      ====> Encrypted Data in Storage(here encrypted data key stored in encrypted object)
+
+S3 simple storage:
+for storage of data
+
+
+S3 server-side encryption 
+
+1. SSE-S3 
+
+	Amazon manages the Master Key
+	We dont have a choice to choose Master Key
+	AES 256
+
+2. KMS - Key Management System
+https://www.youtube.com/watch?v=jZYkJf-9yXI
+1. user send document to S3 storage to store and request for encryption of his data with KMS.
+2. Then S3 send request to KMS to generate a key.
+3. KMS generate 2 keys, by using CMK(Customer Master Key). one plain text data key and one encrypted version of same plain text data key and send both back to S3.
+4. Then S3 encrypt the user data with the plain text data key and generate encrypted form of user data. 
+	And S3 store this encrypted data somewhere and delete plain text data key.
+5. When user ask for a data, S3 need to decrypt the user data so it can send back to user.
+6. S3 send encrypted version of plain text data key to KMS and ask for plain text data key.
+7. KMS send back the plain text data key by using CMK(Customer Master Key).
+8. using this Plain text data key S3 decrypt the user data and send back that data to user.
+
+3. C - Customer provided key
+		Open SSL : use to generate a key
+
+
+
+Amazon Agents:
+1. Amazon Inspector Agents
+	To assess the security of the EC2 instances that make up your Amazon Inspector assessment targets, 
+	you must install the Amazon Inspector Agent on each instance. The agent monitors the behavior (including network, file system, and process activity) 
+	of the EC2 instance on which it is installed, collects behavior and configuration data (telemetry), and then passes the data to the Amazon Inspector service.
+	https://docs.aws.amazon.com/inspector/latest/userguide/inspector_agents.html
+
+2. AWS config
+	AWS Config is a service that enables you to assess, audit, and evaluate the configurations of your AWS resources. 
+	Config continuously monitors and records your AWS resource configurations and allows you to automate the evaluation of 
+	recorded configurations against desired configurations. With Config, you can review changes in configurations and relationships between AWS resources, 
+	dive into detailed resource configuration histories, and determine your overall compliance against the configurations specified in your internal guidelines.
+	This enables you to simplify compliance auditing, security analysis, change management, and operational troubleshooting.
+	https://aws.amazon.com/config/
+	
+3. AWS Cloud-watch
+	CloudWatch enables real-time monitoring of AWS resources such as Amazon EC2 instances, Amazon EBS (Elastic Block Store) volumes, 
+	Elastic Load Balancers, and Amazon RDS database instances.  The application automatically provides metrics for CPU utilization, latency, 
+	and request counts; users can also stipulate additional metrics to be monitored, such as memory usage, transaction volumes or error rates.
+	- CPU Utilization, Memory utilization, error rates, transaction volumes.
+	
+Others
+------
+
+For EBS backup:
+Automated backup are the key processes.
+
+How will you access the data on EBS in AWS ?
+Elastic block storage as the name indicates provides persistent, highly available and high performance block level storage 
+that can be attached to a running EC2 instance. The storage can formatted and mounted as a file system or the raw storage can be accessed directly.
+
+Differentiate between on-demand instance and spot instance
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	

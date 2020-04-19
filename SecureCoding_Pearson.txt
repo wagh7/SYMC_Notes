@@ -1,0 +1,1218 @@
+Character Strings
+------------------
+Strings from sources such as command-line arguments, environment variables, console input, text files, and network
+connections are of special concern in secure programming because they provide means for external input to influence the
+behavior and output of a program.
+
+Graphics- and Web-based applications, for example, make extensive use of text input fields,
+and because of standards like XML, data exchanged between programs is increasingly in string form as well. As a result,
+weaknesses in string representation, string management, and string manipulation have led to a broad range of software
+vulnerabilities and exploits.
+
+Strings are a fundamental concept in software engineering, but they are not a built-in type in C or C++. The standard C
+library supports strings of type char and wide strings of type wchar_t.
+
+Array:
+One of the problems with arrays is determining the number of elements. In the following example, the function clear() uses the
+idiom sizeof(array) / sizeof(array[0]) to determine the number of elements in the array. However, array is a pointer type
+because it is a parameter. As a result, sizeof(array) is equal to sizeof(int *). For example, on an architecture (such as x86-
+32) where sizeof(int) == 4 and sizeof(int *) == 4, the expression sizeof(array) / sizeof(array[0]) evaluates to 1,
+regardless of the length of the array passed, leaving the rest of the array unaffected.
+e.g.
+void clear(int array[]) 
+{
+	for (size_t i = 0; i < sizeof(array) / sizeof(array[0]); ++i) 
+	{
+		array[i] = 0;
+	}
+}
+
+void dowork(void) 
+{
+	int dis[12];
+	clear(dis);
+	/* ... */
+}
+"Do not apply the sizeof operator to a pointer when taking the size of an array"
+
+strlen():
+This function will return the number of bytes preceding the first null byte in the string.
+{It not include terminating null byte}
+
+***Common String Manipulation Errors***
+Manipulating strings in C or C++ is error prone. 
+Four common errors are:
+1. unbounded string copies
+2. off-by-one errors
+3. nulltermination errors
+4. string truncation.
+
+1. unbounded string copies:
+gets():
+This function has been deprecated in C99 and eliminated from C11.
+The main problem with the gets() function is that it provides no way to specify a limit on the number of characters to read.
+Reading data from unbounded sources (such as stdin()) creates an interesting problem for a programmer. Because it is not
+possible to know beforehand how many characters a user will supply, it is not possible to preallocate an array of sufficient
+length. A common solution is to statically allocate an array that is thought to be much larger than needed.
+
+It is easy to make errors when copying and concatenating strings because many of the standard library calls that perform this
+function, such as strcpy(), strcat(), and sprintf(), perform unbounded copy operations.
+
+2. Off-by-one errors:-
+Off-by-one errors are another common problem with null-terminated strings. Off-by-one errors are similar to unbounded string
+copies in that both involve writing outside the bounds of an array. 
+The following program compiles and links cleanly under Microsoft Visual C++ 2010 at /W4 and runs without error on Windows 7 but 
+contains several off-by-one errors. Can you find all the off-by-one errors in this program?
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+char s1[] = "012345678";
+char s2[] = "0123456789";
+char *dest;
+int i;
+
+strcpy_s(s1, sizeof(s2), s2);		// Error: s1 size is less than s2 so bufferoverflow occurs
+dest = (char *)malloc(strlen(s1));
+for (i=1; i <= 11; i++) 			// Error: i should start from 0 and from 1
+{
+	dest[i] = s1[i];
+}
+dest[i] = '\0';
+printf("dest = %s", dest);
+/* ... */;
+}
+
+Many of these mistakes are rookie errors, but experienced programmers sometimes make them as well. It is easy to develop
+and deploy programs similar to this one that compile and run without error on most systems.
+
+3. Null-Termination Errors:-
+Another common problem with strings is a failure to properly null-terminate them. A string is properly null-terminated if a null
+terminator is present at or before the last element in the array. If a string lacks the terminating null character, the program may
+be tricked into reading or writing data outside the bounds of the array.
+According to the C Standard, the strncpy() function copies not more than n characters (characters that follow a null
+character are not copied) from the source array to the destination array. Consequently, if there is no null character in the first n
+characters of the source array, as in this example, the result will not be null-terminated.
+
+4. String Truncation:-
+String truncation can occur when a destination character array is not large enough to hold the contents of a string. String
+truncation may occur while the program is reading user input or copying a string and is often the result of a programmer trying
+to prevent a buffer overflow. Although not as bad as a buffer overflow, string truncation results in a loss of data and, in some
+cases, can lead to software vulnerabilities.
+
+
+***String Vulnerabilities and Exploits***
+Buffer Overflows:-
+Buffer overflows occur when data is written outside of the boundaries of the memory allocated to a particular data structure. C
+and C++ are susceptible to buffer overflows because these languages
+• Define strings as null-terminated arrays of characters
+• Do not perform implicit bounds checking
+• Provide standard library calls for strings that do not enforce bounds checking
+Depending on the location of the memory and the size of the overflow, a buffer overflow may go undetected but can corrupt
+data, cause erratic behavior, or terminate the program abnormally.
+Buffer overflows are troublesome in that they are not always discovered during the development and testing of software
+applications. Not all C and C++ implementations identify software flaws that can lead to buffer overflows during compilation
+or report out-of-bound writes at runtime. Static analysis tools can aid in discovering buffer overflows early in the development
+process. Dynamic analysis tools can be used to discover buffer overflows as long as the test data precipitates a detectable
+overflow.
+Not all buffer overflows lead to software vulnerabilities. However, a buffer overflow can lead to a vulnerability if an
+attacker can manipulate user-controlled inputs to exploit the security flaw. There are, for example, well-known techniques for
+overwriting frames in the stack to execute arbitrary code. Buffer overflows can also be exploited in heap or static memory
+areas by overwriting data structures in adjacent memory.
+
+*Process Memory Organization*
+Process: A program instance that is loaded into memory and managed by the operating system.
+Process memory is generally organized into code, data, heap, and stack segments,
+
+Stack Management
+
+Stack Smashing:-
+"....Stack smashing means you've written outside of ("smashed" past/through) the function's storage space for local variables
+ (this area is called the "stack", in most systems and programming languages). 
+ You may also find this type of error called "stack overflow" and/or "stack underflow"........"
+Stack smashing occurs when a buffer overflow overwrites data in the memory allocated to the execution stack. It can have
+serious consequences for the reliability and security of a program. Buffer overflows in the stack segment may allow an attacker
+to modify the values of automatic variables or execute arbitrary code.
+Overwriting automatic variables can result in a loss of data integrity or, in some cases, a security breach (for example, if a
+variable containing a user ID or password is overwritten). More often, a buffer overflow in the stack segment can lead to an
+attacker executing arbitrary code by overwriting a pointer to an address to which control is (eventually) transferred. A common
+example is overwriting the return address, which is located on the stack. Additionally, it is possible to overwrite a frame- or
+stack-based exception handler pointer, function pointer, or other addresses to which control may be transferred.
+
+Code Injection:-
+
+Arc Injection:-
+The arc injection technique(sometimes called return-into-libc) involves transferring control to code that already exists in process memory
+
+
+
+String Handling
+---------------
+
+1. Caller allocates, caller frees - c99/c11
+2. Callee allocates, caller frees - ISO
+3. Callee allocates, callee frees - C++ std::basic_string
+
+2. Callee allocates, caller frees - ISO
+
+*Dynamic Allocation function*
+-To ensure buffer overflow dose not occur.
+e.g.
+getline()                        {Callee allocates, caller frees}   
+---------
+	char *response = NULL;
+	size_t len;
+	getline(&response, &len, stdin);
+	---
+	free(response);
+	
+stream : open_memstream()		 {Callee allocates, caller frees}
+--------------------------	
+	char *buf;
+	size_t size;
+	FILE *stream;
+	stream = open_memstream(&buf, &size);
+	---
+	free(buf);
+	
+Disadvantages:
+1. suffer from denial-of-service attacks in which data is presented until memory is exhausted.
+2. More prone to dynamic memory management errors, which can also result in vulnerabilities.
+
+*C++ std::basic_string* {Callee allocates, callee frees}
+This is the most secure approach, but it is supported only in C++. Because basic_string manages memory, the caller does not need to worry about the details of memory management.
+Internally, the basic_string methods allocate memory dynamically; buffers are always automatically sized to hold the data required, typically by invoking realloc().
+The std::string class is a specialization of the std::basic_string template on type char. The std::wstring class is a specialization of the
+std::basic_string template on type wchar_t.
+The basic_string class represents a sequence of characters. It supports sequence operations as well as string operations
+such as search and concatenation and is parameterized by character type.
+The basic_string class uses a dynamic approach to strings in that memory is allocated as required—meaning that in all
+cases, size() <= capacity().
+
+For example, string concatenation is handled simply as follows:
+1 string str1 = "hello, ";
+2 string str2 = "world";
+3 string str3 = str1 + str2;
+
+The basic_string class is less prone to security vulnerabilities than null-terminated byte strings, although coding errors
+leading to security vulnerabilities are still possible. One area of concern when using the basic_string class is iterators.
+Iterators can be used to iterate over the contents of a string:
+
+Invalid String Object References:
+char input[];
+string email;
+string::iterator loc = email.begin();
+// copy into string converting ";" to " "
+ for (size_t i=0; i < strlen(input); i++) 
+ {
+  if (input[i] != ';') {
+  email.insert(loc++, input[i]); // invalid iterator
+ }
+ else email.insert(loc++, ' '); // invalid iterator
+}
+The problem with this code is that the iterator loc is invalidated after the first call to insert(), and every subsequent call to
+insert() results in undefined behavior. This problem can be easily repaired if the programmer is aware of the issue:
+
+//Explaination:
+//When string container adds an element, It destroyed underlying buffer and new larger buffer is created.
+//Now, iterator that pointing to that element in the old buffer now invalid.
+//So, you need new iterator which points to new buffer.
+
+char input[];
+string email;
+string::iterator loc = email.begin();
+// copy into string converting ";" to " "
+ for (size_t i=0; i < strlen(input); ++i) 
+ {
+  if (input[i] != ';') {
+  loc = email.insert(loc, input[i]);
+ }
+ else loc = email.insert(loc, ' ');
+ ++loc;
+}
+
+The basic_string class generally protects against buffer overflow, but there are still situations in which programming errors
+can lead to buffer overflows. 
+at():
+While C++ generally throws an exception of type std::out_of_range when an operation
+references memory outside the bounds of the string, for maximum efficiency, the subscript member std::string::operator[]
+(which does not perform bounds checking) does not. For example, the following program fragment can result in a write outside
+the bounds of the storage allocated to the bs string object if f() >= bs.size():
+	string bs("01234567");
+	size_t i = f();
+	bs[i] = '\0';
+The at() method behaves in a similar fashion to the index operator[] but throws an out_of_range exception if pos >=size().
+
+String-Handling Functions
+-------------------------
+gets():
+Never use gets(). Because it is impossible to tell without knowing the data in advance how many characters
+gets() will read, and because gets() will continue to store characters past the end of the buffer, it is extremely
+dangerous to use. It has been used to break computer security.
+e.g.
+char str[50];
+printf("Enter a string : ");
+gets(str);
+
+It is dangerous to use. 
+It has been used to break the computer security.
+We should replace use of gets() with either fgets() or getchar() or gets_s().
+fgets():
+fgets() have the similar behavior to gets().
+fgets() acceps two additional arguments: 1. number char to read 2.input stream
+When stdin is specified as the stream, fgets() can be used tp simulate the behavior of gets().
+The fgets()/gets_s() function can result in a buffer overflow if the specified number of char to input
+exceeds the length of the destination buffer.
+e.g.
+fgets(buf, sizeof(buf), stdin);
+
+getchar():
+Using the getchar() function to read in a line can still result in a buffer overflow if writes to the buffer are not properly
+bounded.
+Reading one character at a time provides more flexibility in controlling behavior without additional performance overhead.
+The following test for the while loop is normally sufficient:
+while (( (ch = getchar()) ! = '\n') && ch ! = EOF )
+
+gets_S():
+The C11 gets_s() function is a compatible but more secure version of gets(). The gets_s() function is a closer replacement
+for the gets() function than fgets() in that it only reads from the stream pointed to by stdin and does not retain the newline
+character. The gets_s() function accepts an additional argument, rsize_t, that specifies the maximum number of characters to
+input. An error condition occurs if this argument is equal to zero or greater than RSIZE_MAX or if the pointer to the destination
+character array is NULL. If an error condition occurs, no input is performed and the character array is not modified. Otherwise,
+the gets_s() function reads, at most, one less than the number of characters specified, and a null character is written
+immediately after the last character read into the array.
+e.g.
+char buf[BUFSIZ];
+if (gets_s(buf, sizeof(buf)) == NULL) \
+{/* handle error */}
+
+-The gets_s() function returns a pointer to the character array if successful. A null pointer is returned if the function
+arguments are invalid, an end-of-file is encountered, and no characters have been read into the array or if a read error occurs
+during the operation.
+-The gets_s() function succeeds only if it reads a complete line (that is, it reads a newline character). If a complete line
+cannot be read, the function returns NULL, sets the buffer to the null string, and clears the input stream to the next newline
+character.
+-The gets_s() function can still result in a buffer overflow if the specified number of characters to input exceeds the length of
+the destination buffer.
+
+
+getline():
+The behavior of the getline() function is similar to that of fgets() but offers several extra features. 
+ 1. If the input line is too long, rather than truncating input, the function resizes the buffer using realloc(). 
+ 2. If successful, it returns the number of characters read, which is useful in determining whether the input has any null characters before the newline. 
+ The getline() function works only with buffers allocated with malloc(). 
+ 3. If passed a null pointer, getline() allocates a buffer of sufficient size to hold the input. 
+ As such, the user must explicitly free() the buffer later.
+e.g.
+size_t buffer_size = 10;
+char *buffer = malloc(buffer_size);	//should check if malloc() fails/pass
+ssize_t size;
+size = getline(&buffer, &buffer_size, stdin);
+
+The getline() function returns the number of characters written into the buffer, including the newline character if one was
+encountered before end-of-file. If a read error occurs, the error indicator for the stream is set, and getline() returns –1.
+
+strcpy() and strcat()
+---------------------
+The strcpy() and strcat() functions are frequent sources of buffer overflows because they do not allow the caller to specify
+the size of the destination array, and many prevention strategies recommend more secure variants of these functions.
+
+strncpy():			
+No null-character is implicitly appended at the end of destination if source is longer than num. Thus, in this case, destination shall not be considered a null terminated C string (reading it as such would overflow).
+
+
+strlcpy() / strlcat()
+----------------------
+The strlcpy() and strlcat() functions first appeared in OpenBSD 2.4. These functions copy and concatenate strings in a less
+error-prone manner than the corresponding C Standard functions. These functions’ prototypes are as follows:
+
+size_t strlcpy(char *dst, const char *src, size_t size);
+size_t strlcat(char *dst, const char *src, size_t size);
+
+The strlcpy() function copies the null-terminated string from src to dst (up to size characters). The strlcat() function
+appends the null-terminated string src to the end of dst (but no more than size characters will be in the destination).
+To help prevent writing outside the bounds of the array, the strlcpy() and strlcat() functions accept the full size of the
+destination string as a size parameter.
+Both functions guarantee that the destination string is null-terminated for all nonzero-length buffers.
+The strlcpy() and strlcat() functions return the total length of the string they tried to create.
+
+
+strcpy_s() / strcat_s()
+----------------------
+The strcpy_s() and strcat_s() functions are defined in C11 Annex K as close replacement functions for strcpy() and
+strcat(). The strcpy_s() function has an additional parameter giving the size of the destination array to prevent buffer
+overflow:
+
+errno_t strcpy_s(char * restrict s1, rsize_t s1max, const char * restrict s2);
+
+The strcpy_s() function is similar to strcpy() when there are no constraint violations. The strcpy_s() function copies
+characters from a source string to a destination character array up to and including the terminating null character.
+The strcpy_s() function succeeds only when the source string can be fully copied to the destination without overflowing the
+destination buffer. The function returns 0 on success, implying that all of the requested characters from the string pointed to by
+s2 fit within the array pointed to by s1 and that the result in s1 is null-terminated. Otherwise, a nonzero value is returned.
+The strcpy_s() function enforces a variety of runtime constraints. A runtime-constraint error occurs if either s1 or s2 is a
+null pointer; if the maximum length of the destination buffer is equal to zero, greater than RSIZE_MAX, or less than or equal to the
+length of the source string; or if copying takes place between overlapping objects. The destination string is set to the null string,
+and the function returns a nonzero value to increase the visibility of the problem.
+
+
+==================================================================
+strcpy_s(){c11} -> strcpy() -> strlspy() : c:string()
+strncpy() : "fixed width string"
+strcat_s(){c11} -> strcat() -> strncat() -> strlcat() : c string
+==================================================================
+
+
+memcpy() and memmove()
+----------------------
+The C Standard memcpy() and memmove() functions are prone to error because they do not allow the caller to specify the size of
+the destination array.
+
+memcpy_s() and memmove_s()
+--------------------------
+The memcpy_s() and memmove_s() functions defined in C11 Annex K are similar to the corresponding, less secure memcpy() and
+memmove() functions but provide some additional safeguards. To prevent buffer overflow, the memcpy_s() and memmove_s()
+functions have additional parameters that specify the size of the destination array. If a runtime-constraint violation occurs, the
+destination array is zeroed to increase the visibility of the problem. Additionally, to reduce the number of cases of undefined
+behavior, the memcpy_s() function must report a constraint violation if an attempt is being made to copy overlapping objects.
+The memcpy_s() and memmove_s() functions return 0 if successful. A nonzero value is returned if either the source or
+destination pointer is NULL, if the specified number of characters to copy/move is greater than the maximum size of the
+destination buffer, or if the number of characters to copy/move or the maximum size of the destination buffer is greater than
+RSIZE_MAX.
+
+strlen()
+--------
+The strlen() function is not particularly flawed, but its operations can be subverted because of the weaknesses of the
+underlying string representation. The strlen() function accepts a pointer to a character array and returns the number of
+characters that precede the terminating null character. If the character array is not properly null-terminated, the strlen()
+function may return an erroneously large number that could result in a vulnerability when used. Furthermore, if passed a nonnull-
+terminated string, strlen() may read past the bounds of a dynamically allocated array and cause the program to be halted.
+
+
+Runtime Protection Strategies
+-----------------------------
+Detection and Recovery
+Detection and recovery mitigation strategies generally make changes to the runtime environment to detect buffer overflows
+when they occur so that the application or operating system can recover from the error (or at least fail safely). Because
+attackers have numerous options for controlling execution after a buffer overflow occurs, detection and recovery are not as
+effective as prevention and should not be relied on as the only mitigation strategy. However, detection and recovery
+mitigations generally form a second line of defense in case the “outer perimeter” is compromised.
+
+Buffer overflow mitigation strategies can be classified according to which component of the entire system provides the
+mitigation mechanism:
+• The developer via input validation
+• The compiler and its associated runtime system
+• The operating system
+
+Input Validation
+----------------
+The best way to mitigate buffer overflows is to prevent them. Doing so requires developers to prevent string or memory copies
+from overflowing their destination buffers. Buffer overflows can be prevented by ensuring that input data does not exceed the
+size of the smallest buffer in which it is stored.
+
+Object Size Checking
+--------------------
+The GNU C Compiler (GCC) provides limited functionality to access the size of an object given a pointer into that object.
+Starting with version 4.1, GCC introduced the __builtin_object_size() function to provide this capability. Its signature is
+size_t __builtin_object_size(void *ptr, int type).
+
+Visual Studio Compiler-Generated Runtime Checks
+-----------------------------------------------
+The MS Visual Studio C++ compiler provides several options to enable certain checks at runtime. These options can be
+enabled using a specific compiler flag. In particular, the /RTCs compiler flag turns on checks for the following errors:
+• Overflows of local variables such as arrays (except when used in a structure with internal padding)
+• Use of uninitialized variables
+• Stack pointer corruption, which can be caused by a calling convention mismatch
+
+These flags can be tweaked on or off for various regions in the code. For example, the following pragma:
+#pragma runtime_checks("s", off)
+turns off the /RTCs flag checks for any subsequent functions in the code. The check may be restored with the following pragma:
+#pragma runtime_checks("s", restore)
+
+
+Stack-Smashing Protector (ProPolice)
+-In version 4.1, GCC introduced the Stack-Smashing Protector (SSP) feature, which implements canaries derived from
+StackGuard [Etoh 2000]. 
+-Also known as ProPolice, SSP is a GCC extension for protecting applications written in C from the
+	most common forms of stack buffer overflow exploits.
+-And is implemented as an intermediate language translator of GCC.
+-SSP provides buffer overflow detection and variable reordering to avoid the corruption of pointers. 
+-Specifically, SSP reorders local variables to place buffers after pointers and copies pointers in function arguments to an area preceding local variable
+	buffers to avoid the corruption of pointers that could be used to further corrupt arbitrary memory locations.
+-The SSP feature is enabled using GCC command-line arguments. 
+-The -fstack-protector and -fno-stack-protector options enable and disable stack-smashing protection for 
+	functions with vulnerable objects (such as arrays). 
+-The -fstackprotector-all and -fno-stack-protector-all options enable and disable the protection of every function, not just the
+	functions with character arrays. Finally, the -Wstack-protector option emits warnings about functions that receive no stack
+	protection when -fstack-protector is used.
+
+Detection and Recovery
+----------------------
+Address space layout randomization (ASLR) is a security feature of many operating systems; 
+-Its purpose is to prevent arbitrary code execution. 
+-The feature randomizes the address of memory pages used by the program. 
+-ASLR cannot prevent the return address on the stack from being overwritten by a stack-based overflow.
+-However, by randomizing the address of stack pages, it may prevent attackers from correctly predicting 
+	the address of the shellcode, system function, or return-oriented programming gadget that they want to invoke.
+
+Linux
+-ASLR was first introduced to Linux in the PaX project in 2000. 
+-Linux kernel, many of its features are incorporated into mainstream Linux distributions. 
+-For example, ASLR has been part of Ubuntu since 2008 and Debian since 2007. 
+	Both platforms allow for fine-grained tuning of ASLR via the following command:
+	sysctl -w kernel.randomize_va_space=2
+-Most platforms execute this command during the boot process. 
+	The randomize_va_space parameter may take the following values:
+		0 Turns off ASLR completely. This is the default only for platforms that do not support this feature.
+		1 Turns on ASLR for stacks, libraries, and position-independent binary programs.
+		2 Turns on ASLR for the heap as well as for memory randomized by option 1.
+Windows
+-ASLR has been available on Windows since Vista. 
+-On Windows, ASLR moves executable images into random locations when a system boots,
+	making it harder for exploit code to operate predictably. 
+-For a component to support ASLR, all components that it loads must also support ASLR. 
+	For example, if A.exe depends on B.dll and C.dll, all three must support ASLR. 
+-By default, Windows Vista and subsequent versions of the Windows operating system randomize system dynamic link libraries
+(DLLs) and executables (EXEs). 
+-However, developers of custom DLLs and EXEs must opt in to support ASLR using the /DYNAMICBASE linker option.
+-Windows ASLR also randomizes heap and stack memory. The heap manager creates the heap at a random location to help
+reduce the chances that an attempt to exploit a heap-based buffer overrun will succeed. Heap randomization is enabled by
+default for all applications running on Windows Vista and later.
+To enable ASLR under Microsoft Windows, you should
+	• Link with Microsoft Linker version 8.00.50727.161 (the first version to support ASLR) or later
+	• Link with the /DYNAMICBASE linker switch unless using Microsoft Linker version 10.0 or later, which enables
+		/DYNAMICBASE by default
+	• Test your application on Windows Vista and later versions, and note and fix failures resulting from the use of ASLR.
+
+
+
+***EXAMPLE***
+==============
+1. Buffer overflow:
+bool IsPasswordOK(void) 
+{
+ char Password[12];
+ gets(Password);
+ r eturn 0 == strcmp(Password, "goodpass");
+}
+int main(void) 
+{
+ bool PwStatus;
+ puts("Enter password:");
+ PwStatus = IsPasswordOK();
+ if (PwStatus == false) 
+ {
+  puts("Access denied");
+  exit(-1);
+ }
+}
+
+2. getline():
+#define __STDC_WANT_LIB_EXT2__ 1
+#include <stdio.h>
+#include <stdlib.h>
+
+void get_y_or_n(void) 
+{
+	char *response = NULL;
+	size_t len;
+
+	puts("Continue? [y] n: ");
+	if ((getline(&response, &len, stdin) < 0) || (len && response[0] == 'n')) 
+	{
+		free(response);
+		exit(0);
+	}
+ free(response);
+}
+
+3. basic_string::iterator
+
+char input[];
+string email;
+string::iterator loc = email.begin();
+// copy into string converting ";" to " "
+for (size_t i=0; i < strlen(input); i++) 
+{
+	if (input[i] != ';') 
+	{
+		email.insert(loc++, input[i]); // invalid iterator
+	}
+	else email.insert(loc++, ' '); // invalid iterator
+}
+
+Correct way:
+char input[];
+string email;
+string::iterator loc = email.begin();
+// copy into string converting ";" to " "
+for (size_t i=0; i < strlen(input); ++i) 
+{
+	if (input[i] != ';') 
+	{
+		loc = email.insert(loc, input[i]);
+	}
+	else loc = email.insert(loc, ' ');
+	++loc;
+}
+
+
+
+GS:
+Security checks
+RTC:
+Basic Runtime checks
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+--------------------------------
+*******Pointer Subterfuge*******
+--------------------------------
+
+Function Pointers:-
+While stack smashing (as well as many heap-based attacks) is not possible in the data segment, overwriting function pointers is
+equally effective in any memory segment.
+
+void good_function(const char *str) {...}
+int main(int argc, char *argv[]) 
+{
+	static char buff[BUFFSIZE];
+	static void (*funcPtr)(const char *str);
+	funcPtr = &good_function;
+	strncpy(buff, argv[1], strlen(argv[1]));
+	(void)(*funcPtr)(argv[2]);
+}
+
+Example contains a vulnerable program that can be exploited to overwrite a function pointer in the BSS segment. The
+static character array buff declared on line 3 and the static function pointer funcPtr declared on line 4 are both uninitialized
+and stored in the BSS segment. The call to strncpy() on line 6 is an example of an unsafe use of a bounded string copy
+function. A buffer overflow occurs when the length of argv[1] exceeds BUFFSIZE. This buffer overflow can be exploited to
+transfer control to arbitrary code by overwriting the value of the function pointer with the address of the shellcode. When the
+program invokes the function identified by funcPtr on line 7, the shellcode is invoked instead of good_function().
+
+Redeclaring buffers as global variables is an inadequate solution because, as we
+have seen, exploitable buffer overflows can occur in the data segment as well.
+
+
+Object Pointers:-
+Object pointers are ubiquitous in C and C++. Kernighan and Ritchie [Kernighan 1988] observe the following:
+Pointers are much used in C, partly because they usually lead to more compact and efficient code than can be
+obtained in other ways.
+Object pointers are used in C and C++ to refer to dynamically allocated structures, call-by-reference function arguments,
+arrays, and other objects. These object pointers can be modified by an attacker, for example, when exploiting a buffer
+overflow vulnerability. If a pointer is subsequently used as a target for an assignment, an attacker can control the address to
+modify other memory locations, a technique known as an arbitrary memory write.
+e.g.
+void foo(void * arg, size_t len) 
+{
+	char buff[100];
+	long val = ...;
+	long *ptr = ...;
+	memcpy(buff, arg, len);	// unbounded memory copy and bufferoverflow may occurs
+	*ptr = val;				// At this line arbitrary memory may performed.
+	...
+	return;
+}
+
+//Object pointers can also be modified by attackers as a result of common errors in managing dynamic memory.
+
+Modifying the Instruction Pointer:-
+For an attacker to succeed in executing arbitrary code on x86-32, an exploit must modify the value of the instruction pointer to
+reference the shellcode. The instruction pointer register (eip) contains the offset in the current code segment for the next
+instruction to be executed.
+e.g. Program using function pointer:
+01 void good_function(const char *str) {
+02 printf("%s", str);
+03 }
+04
+05 int main(void) {
+06 static void (*funcPtr)(const char *str);	// Defined function pointer
+07 funcPtr = &good_function;				// assign address of the function good_function() to fun pointer
+08 (void)(*funcPtr)("hi ");					// call fun good_function() via fun pointer
+09 good_function("there!\n");
+10 return 0;
+11 }
+
+These invocations of good_function() provide examples of call instructions that can and cannot be attacked. 
+The static invocation uses an immediate value as relative displacement, and this displacement cannot be overwritten because it is in the
+code segment. 
+e.g.
+good_function("there!\n"); // at line number 09.
+
+The invocation through the function pointer uses an indirect reference, and the address in the referenced location
+(typically in the data or stack segment) can be overwritten. 
+e.g. 
+(void)(*funcPtr)("hi "); // at line number 08.
+These indirect function references, as well as function calls that
+cannot be resolved at compile time, can be exploited to transfer control to arbitrary code. Specific targets for arbitrary memory
+writes that can transfer control to attacker-supplied code are described in the remainder of this chapter.
+
+Global Offset Table:
+Windows and Linux use a similar mechanism for linking and transferring control to library functions. The main distinction,
+from a security perspective, is that the Linux solution is exploitable, while the Windows version is not.
+
+Every library function used by a program has an entry in the GOT that contains the address of the actual function. This
+allows libraries to be easily relocated within process memory. Before the program uses a function for the first time, the entry
+contains the address of the runtime linker (RTL). If the function is called by the program, control is passed to the RTL and the
+function’s real address is resolved and inserted into the GOT. Subsequent calls invoke the function directly through the GOT
+entry without involving the RTL.
+
+Attack : An attacker can overwrite a GOT entry for a function with the address of shellcode using an arbitrary memory write. Control
+is transferred to the shellcode when the program subsequently invokes the function corresponding to the compromised GOT
+entry. For example, well-written C programs will eventually call the exit() function. Overwriting the GOT entry of the exit()
+function transfers control to the specified address when exit() is called.
+
+The .dtors Section:
+Another target for arbitrary writes is to overwrite function pointers in the .dtors section for executables generated by GCC.
+GNU C allows a programmer to declare attributes about functions by specifying the __attribute__ keyword
+followed by an attribute specification inside double parentheses. 
+Attribute specifications include constructor and destructor.  
+The constructor attribute specifies that the function is called before main().
+The destructor attribute specifies that the function is called after main() has completed or exit() has been called.
+e.g.
+#include <stdio.h>
+#include <stdlib.h>
+
+static void create(void) __attribute__ ((constructor));
+static void destroy(void) __attribute__ ((destructor));
+
+int main(void) {
+printf("create: %p.\n", create);
+printf("destroy: %p.\n", destroy);
+exit(EXIT_SUCCESS);
+}
+ void create(void) 
+ {
+	puts("create called.\n");
+ }
+
+ void destroy(void) 
+ {
+	puts("destroy called.");
+ }
+
+Output:
+% ./dtors
+create called.
+create: 0x80483a0.
+destroy: 0x80483b8.
+destroy called.
+
+Constructors and destructors are stored in the .ctors and .dtors sections in the generated ELF executable image.
+
+Virtual Pointers:
+It is possible to overwrite function pointers in the VTBL or to change the VPTR to point to another arbitrary VTBL. This can
+be accomplished by an arbitrary memory write or by a buffer overflow directly into an object. The buffer overwrites the VPTR
+and VTBL of the object and allows the attacker to cause function pointers to execute arbitrary code. VPTR smashing has not
+been seen extensively in the wild, but this technique could be employed if other techniques fail.
+
+The atexit() and on_exit() Functions:
+The atexit() function is a general utility function defined in the C Standard. The atexit() function registers a function to be
+called without arguments at normal program termination. C requires that the implementation support the registration of at least
+32 functions. The on_exit() function from SunOS performs a similar function. This function is also present in libc4, libc5, and glibc.
+
+The atexit() function works by adding a specified function to an array of existing functions to be called on exit. When
+exit() is called, it invokes each function in the array in last-in, first-out (LIFO) order. Because both atexit() and exit() need
+to access this array, it is allocated as a global symbol (__atexit on BSD operating systems and __exit_funcs on Linux).
+
+The longjmp() Function:
+The C Standard defines the setjmp() macro, longjmp() function, and jmp_buf type, which can be used to bypass the normal
+function call and return discipline.
+The setjmp() macro saves its calling environment for later use by the longjmp() function. The longjmp() function restores
+the environment saved by the most recent invocation of the setjmp() macro. Example 3.13 shows how the longjmp() function
+returns control back to the point of the setjmp() invocation.
+
+e.g. for longjmp():
+#include <setjmp.h>
+jmp_buf buf;
+void g(int n);
+void h(int n);
+int n = 6;
+
+void f(void) 
+{
+ setjmp(buf);
+ g(n);
+}
+
+void g(int n)
+{
+ h(n);
+}
+
+void h(int n)
+{
+ longjmp(buf, 2);
+}
+
+Exception Handling:
+An exception is any event that is outside the normal operations of a procedure. For example, dividing by zero will generate an
+exception. Many programmers implement exception handler blocks to handle these special cases and avoid unexpected
+program termination. Additionally, exception handlers are chained and called in a defined order until one can handle the
+exception.
+Microsoft Windows supports the following three types of exception handlers. The operating system calls them in the order
+given until one is successful.
+1. Vectored exception handling (VEH). These handlers are called first to override a structured exception handler. These
+exception handlers were added in Windows XP.
+2. Structured exception handling (SEH). These handlers are implemented as per-function or per-thread exception handlers.
+3. System default exception handling. This is a global exception filter and handler for the entire process that is called if no
+previous exception handler can handle the exception.
+
+
+Mitigation Strategies:
+The best way to prevent pointer subterfuge is to eliminate the vulnerabilities that allow memory to be improperly overwritten.
+Pointer subterfuge can occur as a result of overwriting object pointers (as shown in this chapter), common errors in managing
+dynamic memory (Chapter 4), and format string vulnerabilities (Chapter 6). Eliminating these sources of vulnerabilities is the
+best way to eliminate pointer subterfuge. There are other mitigation strategies that can help but cannot be relied on to solve the
+problem.
+
+
+1.Stack Canaries
+Unfortunately, canaries are useful only against exploits that overflow a buffer on the
+stack and attempt to overwrite the stack pointer or other protected region. Canaries do not protect against exploits that modify
+variables, object pointers, or function pointers. Canaries do not prevent buffer overflows from occurring in any location,
+including the stack segment.
+
+2.W^X
+One way to limit the exposure from some of these targets is to reduce the privileges of the vulnerable processes. The W^X
+policy described in Chapter 2 allows a memory segment to be writable or executable, but not both. This policy cannot prevent
+overwriting targets such as those required by atexit() that need to be both writable at runtime and executable. Furthermore,
+this policy is not widely implemented.
+
+3.Encoding and Decoding Function Pointers
+Instead of storing a function pointer, the program can store an encrypted version of the pointer. An attacker would need to
+break the encryption to redirect the pointer to other code. Similar approaches are recommended for dealing with sensitive or
+personal data, such as encryption keys or credit card numbers.
+
+=============================================================================================================================================
+-----------------------------------------
+4. Dynamic Memory Management
+-----------------------------------------
+=============================================================================================================================================
+***C Memory Management***
+Memory management functions in c:
+1. malloc()
+2. aligned_alloc(size_t alignment, size_t size);
+3. calloc()
+4. realloc()
+	The realloc() function deallocates the old
+object and returns a pointer to a new object of the specified size. However, if memory for the new object cannot be allocated,
+it does not deallocate the old object, and the old object’s value is unchanged.
+
+Complete Object:
+Objects can contain other objects, called subobjects. A subobject can be a member subobject, a base class subobject, or
+an array element. An object that is not a subobject of any other object is called a complete object.
+
+alloca():
+The alloca() function allocates memory in the stack frame of the caller. This memory is automatically freed when the function
+that called alloca() returns. The alloca() function returns a pointer to the beginning of the allocated space.
+The alloca() function is not defined in POSIX or C but can be found on a number of BSD systems, GCC, and Linux
+distributions. The alloca() function is often implemented as an inline function, often consisting of a single instruction to adjust
+the stack pointer. As a result, alloca() does not return a null error and can make allocations that exceed the bounds of the
+stack.
+Because memory allocated by the standard C memory allocation functions must be freed, programmers often get confused
+and free the memory returned by alloca(), which must not be freed.
+
+
+***Common C Memory Management Errors***
+-------------------------------------------
+1. Initialization Errors
+	A common error is incorrectly assuming that malloc() initializes this memory to all bits zero.
+	Do not reference uninitialized memory.”
+e.g.
+01 /* return y = Ax */
+02 int *matvec(int **A, int *x, int n) {
+03 int *y = malloc(n * sizeof(int));	// just allocate block of memory and not initialized
+04 int i, j;
+05
+06 for (i = 0; i < n; i++)
+07 for (j = 0; j < n; j++)
+08 y[i] += A[i][j] * x[j];		// here assume that y[i] is 0 but its not
+09 return y;
+10 }
+
+2. Failing to Check Return Values
+
+The return values for memory allocation functions indicate the failure or success of the allocation. The aligned_alloc(),
+calloc(), malloc(), and realloc() functions return null pointers if the requested memory allocation fails.
+This vulnerability can be eliminated by simply testing that the pointer returned by malloc() is not null and handling the
+allocation error appropriately.
+
+Failure to detect and properly handle memory allocation errors can lead to unpredictable and unintended program behavior.
+For example, versions of Adobe Flash prior to 9.0.124.0 neglected to check the return value from calloc(), resulting in a
+vulnerability (VU#159523).
+
+3. Dereferencing Null or Invalid Pointers
+4. Referencing Freed Memory
+5. Freeing Memory Multiple Times
+	Free allready freed memory : undefined behavior
+6. Memory Leaks
+	Memory leaks occur when dynamically allocated memory is not freed after it is no longer needed. Many memory leaks are
+obvious, but some are less apparent.
+Memory leaks can be problematic in long-running processes or exploited in a resource-exhaustion attack (a form of a denialof-
+service attack). If an attacker can identify an external action that causes memory to be allocated but not freed, memory can
+eventually be exhausted. Once memory is exhausted, additional allocations fail, and the application is unable to process valid
+user requests without necessarily crashing. This technique might also be used to probe error-recovery code for double-free
+vulnerabilities and other security flaws.
+
+7. Zero-Length Allocations
+
+***C++ Dynamic Memory Management***
+new() : to dynamically allocate memory
+delete :to deallocate memory.
+
+A new expression obtains storage for the object by calling an allocation function. If the new expression terminates by
+throwing an exception, it may release storage by calling a deallocation function. The allocation function for nonarray types is
+operator new(), and the deallocation function is operator delete(). The allocation function for array types is operator new[]
+(), and the deallocation function is operator delete[]().
+
+Placement new is another form of the new expression that allows an object to be constructed at an arbitrary memory location.
+Placement new requires that sufficient memory be available at the specified location.
+e.g.
+char str[1024];
+Test obj = new (str) Test();
+
+*Allocation Failure:
+Typically, allocation functions that fail to allocate storage indicate failures by throwing an exception that would match an
+exception handler of type std::bad_alloc:
+T* p1 = new T; // throws bad_alloc on failure
+If new is called with the std::nothrow argument, the allocation function does not throw an exception if the allocation fails.
+Instead, a null pointer is returned:
+T* p2 = new(std::nothrow) T; // returns 0 on failure
+Exception handling allows programmers to encapsulate error-handling code for allocation, which generally provides for
+cleaner, clearer, and more efficient code.
+
+When an exception is thrown, the runtime mechanism first searches for an appropriate handler in the current scope. If no
+such handler exists, control is transferred from the current scope to a higher block in the calling chain. This process continues
+until an appropriate handler is found. If no handler at any level catches the exception, the std::terminate() function is
+automatically called. By default, terminate() calls the standard C library function abort(), which abruptly exits the program.
+When abort() is called, no calls to normal program termination functions occur, which means that destructors for global and
+static objects do not execute.
+
+
+*std::bad_array_new_length*
+three conditions under which std::bad_array_new_length should be thrown.
+10 new int[negative]; // negative size
+new int[small]{1, 2, 3}; // too many initializers
+new int[large][1000000]; // too large
+
+***Common C++ Memory Management Errors***
+-------------------------------------------
+1. Failing to Correctly Check for Allocation Failure
+2. Improperly Paired Memory Management Functions
+3. Correct and Incorrect Use of Placement new
+	If use placement new operator never use delete opearator to deallocate.
+	Call destructor explicitly.
+	e.g.
+	1 void *addr = reinterpret_cast<void *>(0x00FE0000);
+	2 Register *rp = new (addr) Register;
+	3 ...
+	4 delete rp; 			//*** error!
+	5 ...
+	6 rp = new (addr) Register;
+	7 ...
+	8 rp->~Register(); 		//*** correct
+
+4. Freeing Memory Multiple Times
+5. Deallocation Function Throws an Exception
+	Deallocation functions must not throw exceptions
+	If a deallocation function terminates by throwing an exception, the behavior is undefined.
+	e.g.
+	The user-defined deallocation function UserClass::operator delete[]()
+throws an exception in response to some_condition evaluating to true. If an exception is thrown from the constructor of one of
+the array’s elements during the invocation of an array new expression, the stack is unwound, all successfully constructed array
+elements are destroyed, and UserClass::operator delete[]() is invoked. Allowing UserClass::operator delete[]() to
+throw another exception while the first exception is still in flight (that is, has not yet been handled) results in undefined
+behavior, typically abnormal program termination.
+e.g.
+01 class UserClass {
+02 public:
+03 // ...
+04 UserClass(); // may throw
+05 static void* operator new[](std::size_t);
+06 static void operator delete[](void *ptr) {
+07 if (some_condition)
+08 throw std::runtime_error("deallocating a bad pointer");
+09 // ...
+10 }
+11 };
+12
+13 void f(std::size_t nelems) {
+14 UserClass *array = new UserClass[nelems];
+15 // ...
+16 delete[] array;
+17 }
+
+***Memory Managers***
+----------------------
+
+Doug Lea’s Memory Allocator
+	Free chunks are organized into double-linked lists.
+
+Buffer Overflows on the Heap:
+Dynamically allocated memory is vulnerable to buffer overflows. Exploiting a buffer overflow in the heap is generally
+considered to be more difficult than smashing the stack.
+Buffer overflows, for example, can be used to corrupt data structures used by the memory manager to
+execute arbitrary code. Both the unlink and frontlink techniques described in this section can be used for this purpose.
+
+Because the vulnerable buffer is allocated in the heap and not on the stack, the attacker cannot simply overwrite the return
+address to exploit the vulnerability and execute arbitrary code. The attacker can overwrite the boundary tag associated with the
+second chunk of memory.
+
+Exploitation of a buffer overflow in the heap is not particularly difficult. The most difficult part of this exploit is determining
+the size of the first chunk so that the boundary tag for the second argument can be precisely overwritten. To do this, an attacker
+could copy and paste the request2size(req,nb) macro from dlmalloc into his or her exploit code and use this macro to
+calculate the size of the chunk.
+
+Double-Free Vulnerabilities:
+Doug Lea’s malloc is also susceptible to double-free vulnerabilities. This type of vulnerability arises from freeing the same
+chunk of memory twice without its being reallocated between the two free operations.
+For a double-free exploit to be successful, two conditions must be met. The chunk to be freed must be isolated in memory
+(that is, the adjacent chunks must be allocated so that no consolidation takes place), and the bin into which the chunk is to be
+placed must be empty.
+
+
+
+
+
+
+Mitigation Strategies:
+---------------------
+Memory management defects that lead to heap-based vulnerabilities are particularly troublesome because these defects can
+have no apparent effect on the execution of a program and therefore go undetected. A number of mitigation strategies can be
+used to eliminate or reduce heap-based vulnerabilities. Many of the strategies for preventing stack-based overflows can also
+be used to mitigate against heap-based vulnerabilities.
+1.Null Pointers:
+One obvious technique to reduce vulnerabilities in C and C++ programs is to set pointers to NULL after the referenced memory
+is deallocated. Dangling pointers (pointers to already freed memory) can result in writing to freed memory and double-free
+vulnerabilities. Any attempt to dereference the pointer will result in a fault, which increases the likelihood that the error is
+detected during implementation and test. Also, if the pointer is set to NULL, the memory can be freed multiple times without
+consequence.
+Although setting the pointer to NULL should significantly reduce vulnerabilities resulting from writing to freed memory and
+double-free vulnerabilities, it cannot prevent them when multiple pointers all reference the same data structure.
+2.Consistent Memory Management Conventions
+The most effective way to prevent memory problems is to be disciplined in writing memory management code. The
+development team should adopt a standard approach and apply it consistently. 
+Some good practices include the following:
+• Use the same pattern for allocating and freeing memory. In C++, perform all memory allocation in constructors and all
+memory deallocation in destructors. In C, define create() and destroy() functions that perform an equivalent function.
+• Allocate and free memory in the same module, at the same level of abstraction. Freeing memory in subroutines leads to
+confusion about if, when, and where memory is freed.
+• Match allocations and deallocations. If there are multiple constructors, make sure the destructors can handle all
+possibilities.
+
+3.phkmalloc() 
+phkmalloc was written to operate efficiently in a virtual memory system, which resulted in stronger checks as a side effect.
+The stronger checks led to the discovery of memory management errors in some applications and the idea of using phkmalloc to
+expose and protect against malloc-API mistakes and misuse
+
+4.Randomization
+Randomization works on the principle that it is harder to hit a moving target than a still target. Addresses of memory allocated
+by malloc() are fairly predictable. Randomizing the addresses of blocks of memory returned by the memory manager can make
+it more difficult to exploit a heap-based vulnerability.
+Randomizing memory addresses can occur in multiple locations. For both the Windows and UNIX operating systems, the
+memory manager requests memory pages from the operating system, which are then broken up into small chunks and managed
+as required by the application process. It is possible to randomize both the pages returned by the operating system and the
+addresses of chunks returned by the memory manager.
+
+5. Static analysis tools:
+ISO/IEC TS 17961 includes a number of rules meant to detect security flaws using standard C library functions, including
+the following:
+[accfree] Accessing freed memory
+[nullref] Dereferencing an out-of-domain pointer
+[fileclose] Failing to close files or free dynamic memory when they are no longer needed
+[liberr] Failing to detect and handle standard library errors
+
+6.Runtime Analysis Tools
+Purify
+Purify and PurifyPlus are runtime analysis tools from IBM (formerly Rational). Purify performs memory corruption and
+memory leak detection functions and is available for both Windows and Linux platforms [IBM 2012a]. It detects at runtime
+when a program reads or writes freed memory or frees nonheap or unallocated memory, and it identifies writes beyond the
+bounds of an array. It labels memory states by color depending on what read, write, and free operations are legal.
+
+Valgrind
+Valgrind allows you to profile and debug Linux/x86-32 executables
+
+Insure++
+Parasoft Insure++ is an automated runtime application testing tool that detects memory corruption, memory leaks, memory
+allocation errors, variable initialization errors, variable definition conflicts, pointer errors, library errors, I/O errors, and
+logic errors [Parasoft 2004].
+During compilation, Insure++ reads and analyzes the source code to insert tests and analysis functions around each line.
+Insure++ builds a database of all program elements. In particular, Insure++ checks for the following categories of dynamic
+memory issues:
+• Reading from or writing to freed memory
+• Passing dangling pointers as arguments to functions or returning them from functions
+• Freeing the same memory chunk multiple times
+• Attempting to free statically allocated memory
+• Freeing stack memory (local variables)
+• Passing a pointer to free() that does not point to the beginning of a memory block
+• Calls to free with NULL or uninitialized pointers
+• Passing arguments of the wrong data type to malloc(), calloc(), realloc(), or free().
+
+===========
+5. Integer
+===========
+
+Integer:
+	signed char
+	short int
+	int
+	long int
+	long long int
+Unsigned Integer:
+	unsigned char
+	unsigned short int
+	unsigned int
+	unsigned long int
+	unsigned long long int
+
+
+
+=============
+	File I/O
+=============
+File I/O Basics:
+Performing file I/O securely can be a daunting task, partly because there is so much variability in interfaces, operating systems,
+and file systems. For example, both the C and POSIX standards define separate interfaces for performing file I/O in addition to
+implementation-specific interfaces. Linux, Windows, and Mac OS X all have their peculiarities. Most of all, a wide variety of
+file systems are available for each operating system. Because of the heterogeneous systems that exist in enterprises, each
+operating system supports multiple file systems.
+	
+File System:
+Many UNIX and UNIX-like operating systems use the UNIX file system (UFS).
+When it comes to file systems, Linux has been called the “Swiss Army knife” of operating systems [Jones 2007]. Linux
+supports a wide range of file systems, including older file systems such as MINIX, MS-DOS, and ext2. Linux also supports
+newer journaling file systems such as ext4, Journaled File System (JFS), and ReiserFS. Additionally, Linux supports the
+Cryptographic File System (CFS) and the virtual file system /proc.
+
+i-node:
+A file consists of a collection of blocks (usually on a disk). In UFS, each file has an associated fixed-length record called an
+i-node, which maintains all attributes of the file and keeps addresses of a fixed number of blocks.
+
+Directories:
+Directories are special files that consist of a list of directory entries. A directory entry includes the names of the files in the
+directory and the number of the associated i-nodes.
+
+Special Files:
+Directories are special files. 
+Special files include directories, symbolic links, named pipes, sockets, and device files.
+
+Directories contain only a list of other files (the contents of a directory). They are marked with a d as the first letter of the
+permissions field when viewed with the ls –l command:
+drwxr-xr-x /
+Directories are so named as a result of Bell Labs’ involvement with the Multics project. Apparently, when the developers
+were trying to decide what to call something in which you could look up a file name to find information about the file, the
+analogy with a telephone directory came to mind.
+Symbolic links are references to other files. Such a reference is stored as a textual representation of the file’s path. Symbolic
+links are indicated by an l in the permissions string:
+lrwxrwxrwx termcap -> /usr/share/misc/termcap
+Named pipes enable different processes to communicate and can exist anywhere in the file system. Named pipes are created
+with the command mkfifo, as in mkfifo mypipe. They are indicated by a p as the first letter of the permissions string:
+prw-rw---- mypipe
+Sockets allow communication between two processes running on the same machine. They are indicated by an s as the first
+letter of the permissions string:
+srwxrwxrwx X0
+Device files are used to apply access rights and to direct operations on the files to the appropriate device drivers. Character
+devices provide only a serial stream of input or output (indicated by a c as the first letter of the permissions string):
+crw------- /dev/kbd
+Block devices are randomly accessible (indicated by a b):
+brw-rw---- /dev/hda
+
+File I/O Interfaces
+--------------------
+File I/O in C encompasses all the functions defined in <stdio.h>. The security of I/O operations depends on the specific
+compiler implementation, operating system, and file system. Older libraries are generally more susceptible to security flaws
+than are newer versions.
+Byte input functions perform input into
+byte characters and byte strings: fgetc(), fgets(), getc(), getchar(), fscanf(), scanf(), vfscanf(), and vscanf().
+Byte output functions perform output from byte characters and byte strings: fputc(), fputs(), putc(), putchar(), fprintf(),
+fprintf(), vfprintf(), and vprintf().
+
+
+Opening and Closing Files
+-------------------------
+The fopen() function opens the file whose name is the string pointed to by the file name and associates a stream with it. The
+fopen() function has the following signature:
+FILE *fopen(const char * restrict filename,const char * restrict mode);
+
+File I/O in C++
+------------------
+C++ provides the same system calls and semantics as C, only the syntax is different. The C++ <iostream> library includes
+<cstdio>, which is the C++ version of <stdio.h>. Consequently, C++ supports all the C I/O function calls as well as
+<iostream> objects.
+Instead of using FILE for file streams in C++, use ifstream for file-based input streams, ofstream for file-based output
+streams, and iofstream for file streams that handle both input and output. All of these classes inherit from fstream and operate
+on characters (bytes).
+
+
+C++ provides the following streams to operate on characters (bytes):
+• cin for standard input; replaces stdin
+• cout for standard output; replaces stdout
+• cerr for unbuffered standard error; replaces stderr
+• clog for buffered standard error; useful for logging
+
+Access Control
+---------------
+Most exploits involving the file system and file I/O involve attackers performing an operation on a file for which they lack
+adequate privileges. Different file systems have different access control models.
+
+privileges
+Permission
+
+>chmod
+
+The permissions are
+Read: read a file or list a directory’s contents
+Write: write to a file or directory
+Execute: execute a file or recurse a directory tree
+
+These permissions can be granted or revoked for each of the following classes of users:
+User: the owner of the file
+Group: users who are members of the file’s group
+Others: users who are not the owner of the file or members of the group
+
+Process Privileges
+------------------
+Real user ID (RUID) : the ID of the user who started the process, and it is the same as the user ID of the parent
+process unless it was changed. 
+The effective user ID (EUID) :(owner of process) the actual ID used when permissions are checked by the kernel,
+and it consequently determines the permissions for the process.
+
+
+
+
+
+
+	
+=============
+
+=============
+
+Overwriting Memory:
+	int main()
+	{
+	  int c;
+	  printf("geeks for %ngeeks ", &c);
+	  printf("%d", c);
+	  getchar();
+	  return 0;
+	}
+
+The above program prints “geeks for geeks 10”. The first printf() prints “geeks for geeks”. 
+The second printf() prints 10 as there are 10 characters printed (the 10 characters are “geeks for “) 
+before %n in first printf() and c is set to 10 by first printf().
+
+
