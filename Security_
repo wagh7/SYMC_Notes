@@ -1,0 +1,557 @@
+SSL: Secure Socket Layer
+	Transport Layer Security
+
+Vulnerability
+
+1. Vulnerability Management Lifecycle.
+	Discover->Prioritize Assets -> Assess -> Report -> Remediate -> Verify
+	
+	
+	
+Prioritize Vulnerability:
+	
+	Some factors you may want to consider to make your prioritization more robust are:
+• Which users are logged into the system
+• What services are running on the system
+• What other systems are on the same network
+• Whether the system is currently accessible from the internet
+• When the system can route to critical assets
+
+
+1. continuous updated view of all your IT resources
+2. Knowledge of the constant stream of vulnerability Disclouser
+3. Ability to co relate external threat to our vulnerability gaps.
+
+
+CIS:Win 2012 server
+
+Audit->Remedeation->Impact
+
+1. Account Policies
+	1. Password policy
+		Set 'Enforce password history' to 24 or more passwords
+			Computer Configuration\Windows Settings\Security Settings\Account Policies\Password Policy\Enforce password history
+		Set 'Maximum password age' to '60 or fewer day(s)'
+			Computer Configuration\Windows Settings\Security Settings\Account Policies\Password Policy\Maximum password age
+		Set 'Minimum password age' to '1 or more day(s)'
+		Set 'Minimum password length' to '14 or more character(s)'
+		Set 'Password must meet complexity requirements' to 'Enabled'
+		Set 'Store passwords using reversible encryption' to 'Disabled'
+	2. Account Lockout Policy
+		Set 'Account lockout threshold' to '5 or fewer but not 0 invalid logon attempt(s)'
+		Set 'Account lockout duration' to '15 or more minute(s)'
+		
+2. Local Policy
+	Accounts:
+		Ensure 'Accounts: Administrator account status' is set to 'Disabled'
+		Ensure 'Accounts: Guest account status' is set to 'Disabled'
+		Ensure 'Accounts: Limit local account use of blank passwords to console logon only' is set to 'Enabled'
+		
+3. System Cryptography
+	Ensure 'System cryptography: Force strong key protection for user keys stored on the computer' is set to 
+	'User is prompted when the key is first used' or higher.
+	
+4. Network Access
+	Ensure 'Network access: Allow anonymous SID/Name translation' is set to 'Disabled'
+		This policy setting determines whether an anonymous user can request security identifier (SID) attributes for another user, 
+		or use a SID to obtain its corresponding user name.
+		> wmic useraccount where name='username' get sid
+		
+	Ensure 'Network access: Do not allow anonymous enumeration of SAM(security account manager) accounts' is set to 'Enabled'
+		HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa:RestrictAnonymousSAM
+	
+	Ensure 'Network access: Do not allow storage of passwords and credentials for network authentication' is set to 'Enabled'
+		This policy setting determines whether Credential Manager (formerly called Stored User Names and Passwords) saves passwords or 
+		credentials for later use when it gains domain authentication.
+		
+	Ensure 'Network access: Sharing and security model for local accounts' is set to 'Classic - local users authenticate as themselves'
+	
+5. Devices
+	Ensure 'Devices: Allowed to format and eject removable media' is set to 'Administrators and Interactive Users
+	Ensure 'Devices: Prevent users from installing printer drivers' is set to 'Enabled'
+	
+6. Domain member
+	Ensure 'Domain member: Digitally encrypt or sign secure channel data (always)' is set to 'Enabled'.
+	Ensure 'Domain member: Digitally sign secure channel data (when possible)' is set to 'Enabled'
+	
+
+	
+Win policy
+==========
+
+win_os_netaccept_rule
+	win_os_netaccept_rule_list
+	
+Network Rules:
+Access - Inbound Rules
+Port-IP-Protocol-Action-Log/NoLog
+
+Port: 
+Any (0-65535)
+wellknown (0-1023)
+FTP data 20
+FTP 21
+SSH 22
+HTTP 80
+HTTPS 443
+Registered (1024-49151)
+Dynamic (49152-65535)
+Bootps(s-server) 67
+Bootpc(c-client) 68
+SMTP 25
+POP3 110
+POP3s 995 (with TLS support) TLS-cryptographic protocols that provide authentication and data encryption between servers, machines and applications operating over a network
+imap 143
+imaps 993
+Kerberos 88
+SEP-server-default 8443
+SEP-DB-default 2638
+SEP-admin 9090
+
+
+SMTP: for outgoing mails from client to server
+
+POP3: Retrive mails from mail server
+
+IMAP: Use to retrive mails from mail server,
+		sofisticated protocol, allows user to manage mails in folder etc.
+		
+
+	
+Registry rules:	
+
+Windows OS Services
+-------------------
+All process with sigflag: N00000020Q01  ---> N00000020(system process) Q01(service process)
+
+
+Critical system keys:
+<attr type="path" value="%controlset%\Services\UPS" />
+        <attr type="path" value="%controlset%\Services\lanmanserver\Shares" />
+        <attr type="path" value="\Registry\Machine\software" />
+        <!--
+        <attr type="path" value="\Registry\Machine\software\Classes"/>   for outlook
+        -->
+        <!--
+        <attr type="path" value="\Registry\Machine\software\Classes\*"/> for outlook
+        -->
+        <attr type="path" value="\Registry\Machine\software\Microsoft\RPC" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\RPC\*" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion" />        
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Compatibility" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Drivers" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Embedding" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Font Drivers" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\FontMapper" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\FontSubstitutes" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Fonts" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\GRE_Initialize" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\MCI Extensions" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\MCI" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Perflib" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Ports" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\ProfileList" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Type 1 Installer" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\WOW" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\WOW\*" />
+        <attr type="path" value="\Registry\User\.Default" />
+		<attr type="path" value="\Registry\Machine\Software\Classes\.*" />
+		<attr type="path" value="\Registry\User\*\Software\Classes\.*" />
+		<attr type="path" value="\Registry\Machine\SYSTEM\*Control*\Services\W3SVC\Parameters" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Svchost" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Svchost\*" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\AeDebug" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\AeDebug\*" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options" />
+        <attr type="path" value="\Registry\Machine\software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\*" />
+		
+
+Config keys
+------------
+<attr type="path" value="\Registry\Machine\System\*Control*\Control\Session Manager" />
+		
+Drivers
+-------
+system32\drivers\
+
+Network driver keys
+-------------------
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Winsock2\Parameters" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Lanmanserver\shares" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Dhcp\Parameters" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Tcpip\Parameters" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Tcpip\Parameters\*" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Dhcp\Parameters\*" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Dhcp\Parametersv6" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Netbt\Parameters\*" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Netbt\Parameters" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Netbt\Adapters" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Netbt\Adapters\*" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\*\Parameters\tcpip*" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Tcpip6\Parameters" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Tcpip6\Parameters\*" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\nlasvc\Parameters" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\nlasvc\Parameters\*" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Dhcp\Parametersv6\*" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Netbt" />
+<attr type="path" value="HKLM\SYSTEM\*Control*\Services\Tcpip" />
+
+
+Internet Setting Keys:
+----------------------
+<attr type="path" value="\REGISTRY\MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings" />
+<attr type="path" value="\REGISTRY\MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\*" />
+<attr type="path" value="\REGISTRY\USER\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings" />
+<attr type="path" value="\REGISTRY\USER\*\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\*" />
+
+
+Windows update process:
+---------------------- 
+C:\Windows\System32\wuauclt.exe	: background sys process to check the microsoft site for upadte
+wuauclt1.exe
+wupdmgr.exe	:	runs windows update manager	
+system32\wuapp.exe
+ccmsetup\ccmsetup.exe	:	used by 'Systems Management Server'.This is an application created by 'Microsoft Corporation'.
+system32\poqexec.exe	:	Primitive Operations Queue Executor, It runbs after reboot the system to upadte the OS components
+winsxs\*\tiworker.exe	:	Windows Module Installer Service.
+servicing\TrustedInstaller.exe	:	process of Windows Modules Installer, Main function is to enable installation.
+
+
+os_service_routing_modulemap
+	TERMSRV.DLL
+	ICAAPI.DLL
+	REGSVC.DLL
+	RPCSS.DLL
+	SCHEDSVC.DLL
+	WMISVC.DLL
+	TAPISRV.DLL
+	SECLOGON.DLL
+	
+
+Readonly path -
+RHEL 7
+	/boot
+	/lib
+	/lib64
+	/bin
+	/sbin
+	/usr/bin
+	/usr/sbin
+	/usr/local/bin
+	/usr/local/sbin
+	/usr/lib
+
+Conf files:
+	/etc/*.conf
+	/etc/fstab
+	/etc/vfstab
+	/etc/exports
+
+
+CIS Benchmark document structure:
+AWS linux
+Initial Setup
+	Filesystem Configuration
+	Configure Software Updates
+	Filesystem Integrity checking
+	Secure Boot Settings
+	Additional process Hardening
+	Mandatory Access control
+	Warning Banners
+	Ensure upadtes, patches and additional security software installed
+Services
+Network Confiuration
+	Network parameters(Host and Router)
+	IPv6
+	TCP wrappers
+	Uncommon Network Protocols
+	Firewall Configuration
+Logging and Auditing
+Access, Authentication and Authorization
+System Maintenance
+	System file permisions
+	User and Group settings
+
+	
+CIS:CentOS Linux 7
+1. Initial Setup
+	1. Filesystem Configuration
+		Disable mounting of uncommon filesystem/Disable Unused Filesystem:
+		(Mounting a filesystem simply means making the particular filesystem accessible at a certain point in the Linux directory tree)
+		A number of uncommon filesystem types are supported under Linux. Removing support for unneeded filesystem types reduces the local attack surface of the system. 
+		If a filesystem type is not needed it should be disabled. Native Linux file systems are designed to ensure that built-in security controls function as expected. 
+		Non-native filesystems can lead to unexpected consequences to both the security and functionality of the system and should be used with caution.
+		
+		FAT :	FAT filesystems are often used on portable USB sticks
+		UDF	:	This filesystem type is necessary to support writing DVDs and newer optical disc formats.
+		
+		/etc/modprobe.conf
+		install <fileSystemName> /bin/true
+		
+		Disable Mounting of Uncommon Filesystem : install <fileSystemName> /bin/true
+		
+		Below command to list all filesystem:
+		ls -l /lib/modules/$(uname -r)/kernel/fs
+		
+			cramfs
+			freevxfs
+			jffs2
+			hfs
+			hfsplus
+		
+		Ensure noexec option set on removable media partitions 
+			Edit the /etc/fstab file and add noexec to the fourth field (mounting options) of all removable media partitions. 
+			Look for entries that have mount points that contain words such as floppy or cdrom. See the fstab(5) manual page for more information.
+	
+	2. Configure software updates
+		
+		Ensure gpgcheck is globally activated(GPG- GNU privacy guard)
+			The gpgcheck option, found in the main section of the /etc/yum.conf and individual /etc/yum/repos.d/* files determines if an RPM package's 
+			signature is checked prior to its installation.
+			If set to 1, verify the authenticity of the packages by checking the GPG signatures
+		Ensure GPG keys are configured
+			Most packages managers implement GPG key signing to verify package integrity during installation.
+			
+		
+	3. Secure Boot settings
+		Ensure permissions on bootloader config are configured
+			The grub configuration file contains information on boot settings and passwords for unlocking boot options. 
+			The grub configuration is usually located at /boot/grub2/grub.cfg and linked as /etc/grub2.conf .
+			Run the following command and verify Uid and Gid are both 0/root and Access does not grant permissions to group or other :
+
+			# stat /boot/grub2/grub.cfg
+			Access: (0600/-rw-------)  Uid: (    0/    root)   Gid: (    0/    root)
+
+		Ensure bootloader password is set
+			Create an encrypted password with grub-mkpasswd-pbkdf2 :
+			
+			Run the following command to update the grub2 configuration:
+				# grub2-mkconfig > /boot/grub2/grub.cfg
+				
+			# /sbin/grub-md5-crypt
+				Password: clydenw
+				Retype password: clydenw
+				$1$qhqh.1$7MQxS6GHg4IlOFMdnDx9S.
+		
+		Ensure authentication required for single user mode
+			Requiring authentication in single user mode (rescue mode) prevents an unauthorized user from rebooting the system into single user 
+			to gain root privileges without credentials.
+			Edit /usr/lib/systemd/system/rescue.service and /usr/lib/systemd/system/emergency.service and set ExecStart to use ' /sbin/sulogin '
+		
+	
+	4. Additional Process Hardening
+		Ensure core dumps are restricted
+			A core dump is the memory of an executable program. 
+			Add the following line to the /etc/security/limits.conf file or a /etc/security/limits.d/* file:
+				* hard core 0
+			
+		Ensure XD/NX support is enabled
+			Recent processors in the x86 family support the ability to prevent code execution on a per memory page basis. 
+			Generically and on AMD processors, this ability is called No Execute (NX), while on Intel processors it is called Execute Disable (XD). 
+			This ability can help prevent exploitation of buffer overflow vulnerabilities and should be activated whenever possible. Extra steps must be taken 
+			to ensure that this protection is enabled, particularly on 32-bit x86 systems. Other processors, such as Itanium and POWER, 
+			have included such support since inception and the standard kernel for those platforms supports the feature.
+				
+				# dmesg | grep NX
+				NX (Execute Disable) protection: active# dmesg | grep NX NX (Execute Disable) protection: active
+			
+		5. Ensure updates, patches, and additional security software are installed
+			yum check-update
+			yum update
+		
+		System Maintanance:
+		6. File Permisions:
+			/etc/password(default permision: 644)
+				User name
+				Encrypted password(Dont have password directly mentioned in this file but have x character, that means /etc/shadow file have the password in increpted format)
+				User ID number (UID)
+				User's group ID number (GID)
+				Full name of the user (GECOS)
+				User home directory
+				Login shell
+			/etc/shdow (default permision - 000)
+				# chown root:root /etc/shadow
+				# chmod 000 /etc/shadow
+				
+			/etc/group   ->644
+			/etc/gshadow ->000
+			/etc/passwd-
+			/etc/shadow-
+			/etc/group-
+			/etc/gshadow-
+			
+		Network Configuration:
+			Uncommand Network Protocols(disabling support for loading kernel modules)
+				If the protocol is not being used, it is recommended that kernel module not be loaded
+				Disable - DCCP
+					Datagram Congestion Control Protocol (DCCP) is a transport layer protocol that supports streaming media and telephony
+					Disable Mounting/load driver of Uncommon Protocol : install <protocolName> /bin/true
+					
+				SCTP/RDS/TIPC
+		
+		Firewall Configuration
+			Ensure iptables is installed	
+				iptables allows configuration of the IPv4 tables in the linux kernel and the rules stored within them. 
+				Most firewall configuration utilities operate as a front end to iptables.
+				Install command : yum install iptables
+				Check status of install: rpm -q iptables
+				
+				# iptables -L
+				Chain INPUT (policy DROP)
+				Chain FORWARD (policy DROP)
+				Chain OUTPUT (policy DROP)
+				
+				To set:
+				# iptables -P INPUT DROP
+				# iptables -P OUTPUT DROP
+				# iptables -P FORWARD DROP
+					
+			Ensure firewall rules exist for all open ports
+				Without a firewall rule configured for open ports default firewall policy will drop all packets to these ports.
+			
+'SIGNED '                              -- 00000001
+'SYMC_SIGNED '                         -- 00000008
+'MICROSOFT_SIGNED '                    -- 00000010
+'OS_COMPONENT '                        -- 00000020
+Signed and Trusted						--	N00010000
+Invalid Signature						--R00402880
+Service process - Q01
+Interactive process - Q02
+
+
+	
+Database Security:
+
+CIA:
+Confidentiality
+	Keeping the data secrete, So autherised member can access it.	
+Integrity
+	Maintaining the accurecy and consistency and trustworathness of data.
+Availability
+	Auterised party are able to access data when needed.
+			
+
+Most common attacks:
+1. SQL enjection
+	Find out vulnerability of any site and then attacks using SQL commands.
+	Poor coading
+	SQL enjection string
+	acunetix.com
+	'or 1=1--
+	
+	
+
+2. Buffer overflow vulnerabilities
+3. Denial of service attacks
+4. Weak authentication
+
+CIS
+OS level configurations:
+	Place Databases on Non-System Partitions
+		show variables where variable_name = 'datadir';
+	Use Dedicated Least Privileged Account for MySQL Daemon/Service
+	
+	Disable MySQL Command History
+		On Linux/UNIX, the MySQL client logs statements executed interactively to a history file. By default, 
+		this file is named .mysql\_history in the user's home directory
+		
+		Audit: find /home -name ".mysql_history"
+		Remediation: Create $HOME/.mysql\_history as a symbolic to /dev/null.
+	Disable Interactive Login
+	
+1. Deployment Failures
+
+The most common cause of database vulnerabilities is a lack of due care at the moment they are deployed. 
+Although any given database is tested for functionality and to make sure it is doing what the databases is designed to do, 
+very few checks are made to check the database is not doing things it should not be doing.
+
+2. Broken databases
+
+The SQL Slammer worm of 2003 was able to infect more than 90 percent of vulnerable computers within 10 minutes of deployment, 
+taking down thousands of databases in minutes. This worm took advantage of a bug that was discovered in Microsoft's SQL Server database 
+software the previous year, but few system administrators installed a fix, leaving computers vulnerable.
+
+By exploiting a buffer-overflow vulnerability, the worm's success demonstrates how critical installing security patches and fixes are. 
+However, whether lacking time or resources, not enough businesses keep their systems regularly patched, leaving databases vulnerable.
+
+3.Data leaks
+
+Databases may be considered a "back end" part of the office and secure from Internet-based threats (and so data doesn't have to be encrypted), but this is not the case. Databases also contain a networking interface, and so hackers are able to capture this type of traffic to exploit it. To avoid such a pitfall, administrators should use SSL- or TLS-encrypted communication platforms.
+
+4.Stolen database backups
+
+External attackers who infiltrate systems to steal data are one threat, but what about those inside the corporation? The report suggests that insiders are also likely to steal archives — including database backups — whether for money, profit or revenge. This is a common problem for the modern enterprise, and businesses should consider encrypting archives to mitigate the insider-risk.
+
+6. A lack of segregation
+
+The separation of administrator and user powers, as well as the segregation of duties, can make it more difficult for fraud or theft undertaken by internal staff. In addition, limiting the power of user accounts may give a hacker a harder time in taking complete control of a database.
+
+8. SQL injections
+
+A popular method for hackers to take, SQL injections remain a critical problem in the protection of enterprise databases. Applications are attacked by injections, and the database administrator is left to clean up the mess caused by unclean variables and malicious code which is inserted into strings, later passed to an instance of SQL server for parsing and execution. The best ways to protect against these threats are to protect web-facing databases with firewalls and to test input variables for SQL injection during development.
+
+10. Database inconsistencies
+
+Finally, the researchers found that the common thread which brings all of these vulnerabilities together is a lack of consistency, 
+which is an administrative rather than database technology problem. System administrators and database developers need to develop a 
+consistent practice in looking after their databases, staying aware of threats and making sure that vulnerabilities are taken care of. 
+This isn't an easy task, but documentation and automation to track and make changes can ensure that the information contained 
+in enterprise networks is kept secure.
+	
+	
+Policy:- Sandboxing - profiling
+	Win / Linux , Tomcat
+
+	
+
+
+
+Attacks
+1. TESLA (May-2018)
+https://www.infosecurity-magazine.com/opinions/tesla-hack-cryptojacking-warning/
+Cryptojacking: mine cryptocurrency
+		Is a form of cyber attack in which a hacker hijacks a target's processing power in order to mine cryptocurrency on the hacker's behalf.
+
+Cryptojacking hit the headlines yet again earlier last month, following the news that Tesla’s cloud was compromised by hackers in order 
+for them to illegally mine cryptocurrency. 
+
+the footprint of Kubernetes on AWS is widespread, with 63% of Kubernetes stacks running on AWS. This prevalence of Kubernetes Clusters, 
+coupled with their management complexity and insecure configurations, is what is potentially leaving the door open for attackers’ 
+cryptocurrency mining attacks
+
+mine cryptocurrency:
+The miners are the one who maintain the database of all transactions that happen on bitcoin network. Anyone who has downloaded the copy of all transactions can become a miner. I won’t go into mining pool and all, to keep things simple.
+
+What these miners do? - The miners share their hash power or you could say run an algorithm to confirm/verify transactions that happen on Bitcoin network. For verifying any transaction, they get a fixed reward i.e. Bitcoins. This is how new bitcoins are generated.
+
+2. Ransomware
+	WanaaCry 2017
+		It encrypt all data on disk of client machine and ask for ransome to decrypt all files.
+		It exploits a vulnerability in Microsoft's (SMB)Server Message Block Protocol.
+		
+		Key block : "%controlset%\Services\*"
+		Process try to access : %systemroot%\system32\SERVICES.EXE" 
+
+		Exceptions added to acomplish Wndows normal functionality.
+
+3. 7zip:
+	From Uninitialized Memory to Remote Code Execution
+	version 15 and 17 are affected
+	All versions prior to version 18 are affected.
+	Not only 7-Zip itself is affected, but essentially all software that uses 7z.dll as library to extract files. 
+		This includes various anti-virus software.
+	
+
+Tomcat:
+Routing-
+<parametervalue prog="/usr/lib/jvm/java*/jre-abrt/bin/java" cmdline="* org.apache.catalina.startup.Bootstrap *" />
+<parametervalue prog="/usr/lib/jvm/jre/bin/java" cmdline="* org.apache.catalina.startup.Bootstrap *" /> <!-- Added for Amazon Linux -->
+<parametervalue prog="/usr/lib/jvm/default-java/bin/java" cmdline="* org.apache.catalina.startup.Bootstrap *" /> <!-- Added for Ubuntu -->
+
+	
+		
+Linux Commands
+==============
+modeprobe	:	Add or remove module from the Linux Kernel. 
+lsmod | grep <modName>
+service <service_name> status
